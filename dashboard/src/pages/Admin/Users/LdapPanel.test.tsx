@@ -110,4 +110,47 @@ describe("<LdapPanel /> saving", () => {
       timeout_seconds: 27,
     });
   });
+
+  it("saves a config that omits optional keys without throwing", async () => {
+    const user = userEvent.setup();
+    const {
+      admin_groups: _adminGroups,
+      allowed_groups: _allowedGroups,
+      bind_dn: _bindDn,
+      display_name_attribute: _displayNameAttribute,
+      email_attribute: _emailAttribute,
+      group_attribute: _groupAttribute,
+      group_member_attribute: _groupMemberAttribute,
+      group_search_base: _groupSearchBase,
+      subject_attribute: _subjectAttribute,
+      ...required
+    } = config;
+    getLdapConfig.mockResolvedValue(required as unknown as LdapConfig);
+    render(<LdapPanel />);
+    await screen.findByDisplayValue(config.server_url);
+
+    await user.click(
+      screen.getByRole("button", { name: "adminSso.ldap.save" }),
+    );
+
+    await waitFor(() => expect(putLdapConfig).toHaveBeenCalledOnce());
+    expect(putLdapConfig.mock.calls[0][0]).toMatchObject({
+      display_name: config.display_name,
+      server_url: config.server_url,
+      user_base_dn: config.user_base_dn,
+      user_filter: config.user_filter,
+      username_attribute: config.username_attribute,
+      timeout_seconds: config.timeout_seconds,
+      bind_dn: "",
+      email_attribute: "",
+      display_name_attribute: "",
+      subject_attribute: "",
+      group_attribute: "",
+      group_search_base: "",
+      group_member_attribute: "",
+      admin_groups: "",
+      allowed_groups: "",
+    });
+    expect(putLdapConfig.mock.calls[0][0]).not.toHaveProperty("bind_password");
+  });
 });
