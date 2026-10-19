@@ -73,6 +73,13 @@ const DEFAULT_GROUP_ATTRIBUTE = "memberOf";
 const DEFAULT_GROUP_MEMBER_ATTRIBUTE = "member";
 const DEFAULT_TIMEOUT_SECONDS = 10;
 
+/**
+ * Trim a form value that may be missing. ``onFinish`` omits unmounted fields and
+ * a partial/older config can leave optional keys unset, so a bare ``.trim()``
+ * would throw before the request is sent.
+ */
+const text = (value: string | undefined): string => (value ?? "").trim();
+
 function configToFormValues(config: LdapConfig): LdapFormValues {
   return {
     enabled: config.enabled,
@@ -164,28 +171,28 @@ export default function LdapPanel() {
     try {
       const body: LdapConfigPut = {
         enabled: values.enabled,
-        display_name: values.display_name.trim(),
-        server_url: values.server_url.trim(),
+        display_name: text(values.display_name),
+        server_url: text(values.server_url),
         start_tls: values.start_tls,
         verify_tls: values.verify_tls,
-        bind_dn: values.bind_dn.trim(),
-        user_base_dn: values.user_base_dn.trim(),
-        user_filter: values.user_filter.trim(),
-        username_attribute: values.username_attribute.trim(),
-        email_attribute: values.email_attribute.trim(),
-        display_name_attribute: values.display_name_attribute.trim(),
-        subject_attribute: values.subject_attribute.trim(),
-        group_attribute: values.group_attribute.trim(),
+        bind_dn: text(values.bind_dn),
+        user_base_dn: text(values.user_base_dn),
+        user_filter: text(values.user_filter),
+        username_attribute: text(values.username_attribute),
+        email_attribute: text(values.email_attribute),
+        display_name_attribute: text(values.display_name_attribute),
+        subject_attribute: text(values.subject_attribute),
+        group_attribute: text(values.group_attribute),
         group_search: values.group_search,
-        group_search_base: values.group_search_base.trim(),
-        group_member_attribute: values.group_member_attribute.trim(),
-        admin_groups: values.admin_groups.trim(),
-        allowed_groups: values.allowed_groups.trim(),
+        group_search_base: text(values.group_search_base),
+        group_member_attribute: text(values.group_member_attribute),
+        admin_groups: text(values.admin_groups),
+        allowed_groups: text(values.allowed_groups),
         auto_provision: values.auto_provision,
         timeout_seconds: values.timeout_seconds,
       };
       // Write-only: an untouched field must never clobber the stored secret.
-      const bindPassword = values.bind_password?.trim();
+      const bindPassword = text(values.bind_password);
       if (bindPassword) body.bind_password = bindPassword;
       applyConfig(await ssoApi.putLdapConfig(body));
       message.success(t("adminSso.ldap.saved"));
